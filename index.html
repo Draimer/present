@@ -194,6 +194,29 @@
     .chart-del { height: 34px; min-width: 34px; padding: 0 10px; border-radius: var(--r-sm); }
     #chartTitle:focus { outline: none; box-shadow: 0 2px 0 var(--accent); }
     @media (max-width: 760px) { .chart-wrap { grid-template-columns: 1fr; } }
+    /* ── 最後一頁：即時投票結果 ── */
+    .results-slide { background: #141410; }
+    .results-board { position: absolute; inset: 0; background: radial-gradient(circle at 22% -10%, #23231c, #141410 72%); color: #f4f3ee; padding: 84px 120px; display: flex; flex-direction: column; font-family: var(--font-sans); }
+    .results-board .rb-head { text-align: center; margin-bottom: 38px; }
+    .results-board .rb-kicker { font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.38em; color: var(--accent); }
+    .results-board .rb-title { font-size: 86px; font-weight: 800; margin: 12px 0 6px; letter-spacing: -0.02em; line-height: 1; }
+    .results-board .rb-sub { font-size: 25px; color: rgba(244,243,238,0.55); }
+    .results-board .rb-cols { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 84px; align-content: center; }
+    .results-board .rb-col { display: flex; flex-direction: column; gap: 24px; }
+    .results-board .rb-coltitle { font-size: 38px; font-weight: 800; margin: 0 0 4px; }
+    .results-board .rb-row { display: grid; gap: 9px; }
+    .results-board .rb-label { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
+    .results-board .rb-key { display: inline-grid; place-items: center; width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(255,255,255,0.12); color: #fff; font-family: var(--font-mono); font-size: 25px; font-weight: 700; }
+    .results-board .rb-row.lead .rb-key { background: var(--accent); color: var(--accent-ink); }
+    .results-board .rb-track { position: relative; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .results-board .rb-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 12px; background: linear-gradient(90deg, var(--opp), var(--accent)); transition: width 0.85s cubic-bezier(0.22,1,0.36,1); }
+    .results-board .rb-row.lead .rb-fill { background: linear-gradient(90deg, var(--accent), #b6ff4d); box-shadow: 0 0 30px rgba(132,224,0,0.5); }
+    .results-board .rb-num { display: flex; justify-content: space-between; align-items: baseline; }
+    .results-board .rb-pct { font-family: var(--font-mono); font-size: 30px; font-weight: 700; color: var(--accent); }
+    .results-board .rb-votes { font-family: var(--font-mono); font-size: 23px; color: rgba(244,243,238,0.65); }
+    .results-board .rb-coltotal { font-family: var(--font-mono); font-size: 21px; color: rgba(244,243,238,0.5); margin-top: 6px; }
+    .results-board .rb-foot { display: flex; justify-content: center; gap: 72px; margin-top: 36px; font-size: 27px; color: rgba(244,243,238,0.7); }
+    .results-board .rb-foot b { font-family: var(--font-mono); font-size: 40px; color: var(--accent); font-weight: 700; margin-right: 6px; }
     .presenting .toolbar, .presenting .side-panel { display: none; }
     .presenting .workspace { grid-template-columns: 1fr; background: #111; }
     .presenting .stage-shell { padding: 0; overflow: hidden; background: #111; }
@@ -566,6 +589,7 @@
       pollState.options[2].votes = data[2] || 0;
       renderPoll();
       maybePollMilestone(pollState.options.reduce((s, o) => s + o.votes, 0));
+      updateResults();
     });
 
     // 監聽 Firebase 觀眾問答
@@ -583,10 +607,13 @@
     const liveOnlineEl = document.getElementById("liveOnline");
     const liveReactsEl = document.getElementById("liveReacts");
     let sessionReactions = 0;
+    let lastOnline = 0;
     onValue(ref(db, 'presence'), (snapshot) => {
       const data = snapshot.val();
       const n = data ? Object.keys(data).length : 0;
+      lastOnline = n;
       if (liveOnlineEl) { liveOnlineEl.innerHTML = `🟢 ${n}`; bump(liveOnlineEl); }
+      updateResults();
     });
 
     // ── 觀眾反應 emoji（修正：全螢幕可見、去除歷史殘留、可多顆同時浮現）──
@@ -605,6 +632,7 @@
         spawnFloater(item.emoji);
         sessionReactions++;
         if (liveReactsEl) { liveReactsEl.innerHTML = `❤️ ${sessionReactions}`; bump(liveReactsEl); }
+        updateResults();
       });
     });
 
@@ -835,6 +863,70 @@
     (function () { const t = document.getElementById("chartTitle"); if (t) t.addEventListener("input", () => { chartData.title = t.textContent.trim(); saveChart(); }); })();
     restoreChart(); renderChartEditor(); renderChart(false);
 
+    /* ===== 最後一頁：即時投票結果總覽 ===== */
+    function renderResultsBoard() {
+      const board = document.getElementById("resultsBoard");
+      if (!board) return;
+      const pq = document.getElementById("pollQuestion");
+      const pollTitle = (pq && pq.textContent.trim()) ? pq.textContent.trim() : "你會怎麼處理紙箱？";
+      const col = (id, title, opts, numbered) => {
+        const rows = opts.map((o, i) => `
+          <div class="rb-row" data-grp="${id}" data-i="${i}">
+            <div class="rb-label"><span class="rb-key">${numbered ? (i + 1) : String.fromCharCode(65 + i)}</span><span class="rb-name">${o.label}</span></div>
+            <div class="rb-track"><div class="rb-fill"></div></div>
+            <div class="rb-num"><span class="rb-pct">0%</span><span class="rb-votes">0</span></div>
+          </div>`).join("");
+        return `<div class="rb-col"><h2 class="rb-coltitle">${title}</h2>${rows}<div class="rb-coltotal" data-total="${id}">共 0 票</div></div>`;
+      };
+      board.innerHTML = `
+        <div class="rb-head">
+          <span class="rb-kicker">LIVE RESULTS · 即時結果</span>
+          <h1 class="rb-title">大家的投票結果</h1>
+          <span class="rb-sub">掃 QR 一起投，畫面即時更新</span>
+        </div>
+        <div class="rb-cols">
+          ${col("poll", "🗳 " + pollTitle, propPollSafe(pollState), false)}
+          ${col("prop", "🏆 最喜歡的提案", propPollSafe(propState), true)}
+        </div>
+        <div class="rb-foot">
+          <span class="rb-stat"><b id="rbOnline">0</b> 人在線</span>
+          <span class="rb-stat"><b id="rbVotes">0</b> 張總票數</span>
+          <span class="rb-stat"><b id="rbReacts">0</b> 個互動反應</span>
+        </div>`;
+      updateResults();
+    }
+    function propPollSafe(state) { return (state && state.options) ? state.options : []; }
+    function updateResults() {
+      const board = document.getElementById("resultsBoard");
+      if (!board) return;
+      const fillCol = (id, opts) => {
+        const total = opts.reduce((s, o) => s + (o.votes || 0), 0);
+        const max = Math.max(0, ...opts.map((o) => o.votes || 0));
+        opts.forEach((o, i) => {
+          const row = board.querySelector(`.rb-row[data-grp="${id}"][data-i="${i}"]`);
+          if (!row) return;
+          const pct = total ? Math.round((o.votes || 0) / total * 100) : 0;
+          row.classList.toggle("lead", (o.votes || 0) > 0 && (o.votes || 0) === max);
+          const f = row.querySelector(".rb-fill"); if (f) f.style.width = pct + "%";
+          const p = row.querySelector(".rb-pct"); if (p) p.textContent = pct + "%";
+          const v = row.querySelector(".rb-votes"); if (v) v.textContent = (o.votes || 0);
+        });
+        const totEl = board.querySelector(`[data-total="${id}"]`); if (totEl) totEl.textContent = `共 ${total} 票`;
+        return total;
+      };
+      const pt = fillCol("poll", propPollSafe(pollState));
+      const rt = fillCol("prop", propPollSafe(propState));
+      const on = document.getElementById("rbOnline"); if (on) on.textContent = lastOnline;
+      const vv = document.getElementById("rbVotes"); if (vv) vv.textContent = pt + rt;
+      const rr = document.getElementById("rbReacts"); if (rr) rr.textContent = sessionReactions;
+    }
+    function animateResultsIn() {
+      const board = document.getElementById("resultsBoard");
+      if (!board) return;
+      board.querySelectorAll(".rb-fill").forEach((f) => { f.style.width = "0%"; });
+      requestAnimationFrame(() => requestAnimationFrame(updateResults));
+    }
+
     // 額外快捷鍵：V 提案票選、G 問卷圓餅圖
     window.addEventListener("keydown", (e) => {
       if (e.target && e.target.matches && e.target.matches("input, textarea, [contenteditable='true']")) return;
@@ -862,7 +954,7 @@
     }
 
     function buildSlides() {
-      return SLIDE_NUMBERS.map((num) => {
+      const built = SLIDE_NUMBERS.map((num) => {
         const elements = [];
         (SHAPES[num] || []).forEach((shapeItem, i) => { elements.push({ id: `s${num}-shape-${i}`, type: "shape", name: shapeItem.name || "色塊", x: shapeItem.x, y: shapeItem.y, w: shapeItem.w, h: shapeItem.h, bg: shapeItem.c }); });
         (PLACEHOLDERS[num] || []).forEach((item, i) => { elements.push({ id: `s${num}-ph-${i}`, type: "placeholder", name: item.key, key: item.key, x: item.x, y: item.y, w: item.w, h: item.h, bg: "#d6484c", image: "" }); });
@@ -870,6 +962,8 @@
         elements.push(...ocrElementsForSlide(num));
         return { num, file: `assets/slides/${num}.jpg`, elements };
       });
+      built.push({ num: "結果", results: true, elements: [] });
+      return built;
     }
 
     function ocrElementsForSlide(num) {
@@ -878,13 +972,13 @@
 
     function mergeOcrTextIntoSlides() { slides.forEach((slide) => { slide.elements = slide.elements.filter((el) => el.source !== "ocr"); slide.elements.push(...ocrElementsForSlide(slide.num)); }); }
 
-    function renderSlideOptions() { slideSelect.innerHTML = ""; slides.forEach((slide, index) => { const option = document.createElement("option"); option.value = index; option.textContent = `第 ${slide.num} 頁`; slideSelect.appendChild(option); }); }
+    function renderSlideOptions() { slideSelect.innerHTML = ""; slides.forEach((slide, index) => { const option = document.createElement("option"); option.value = index; option.textContent = slide.results ? "📊 投票結果" : `第 ${slide.num} 頁`; slideSelect.appendChild(option); }); }
 
-    function renderDeckDots() { deckDots.innerHTML = ""; slides.forEach((slide, index) => { const dot = document.createElement("button"); dot.className = "deck-dot"; dot.type = "button"; dot.title = `第 ${slide.num} 頁`; dot.setAttribute("aria-label", `切換到第 ${slide.num} 頁`); dot.addEventListener("click", () => activateSlide(index)); deckDots.appendChild(dot); }); updateDeckChrome(); }
+    function renderDeckDots() { deckDots.innerHTML = ""; slides.forEach((slide, index) => { const dot = document.createElement("button"); dot.className = "deck-dot"; dot.type = "button"; dot.title = slide.results ? "投票結果" : `第 ${slide.num} 頁`; dot.setAttribute("aria-label", slide.results ? "切換到投票結果" : `切換到第 ${slide.num} 頁`); dot.addEventListener("click", () => activateSlide(index)); deckDots.appendChild(dot); }); updateDeckChrome(); }
 
-    function updateDeckChrome() { const count = Math.max(1, slides.length); const slide = slides[current]; deckProgress.style.width = `${((current + 1) / count) * 100}%`; deckCounter.textContent = slide ? `${String(current + 1).padStart(2, "0")} / ${count} · 第 ${slide.num} 頁` : ""; [...deckDots.children].forEach((dot, index) => { dot.classList.toggle("on", index === current); dot.setAttribute("aria-current", index === current ? "true" : "false"); }); }
+    function updateDeckChrome() { const count = Math.max(1, slides.length); const slide = slides[current]; deckProgress.style.width = `${((current + 1) / count) * 100}%`; const label = slide ? (slide.results ? "投票結果" : `第 ${slide.num} 頁`) : ""; deckCounter.textContent = slide ? `${String(current + 1).padStart(2, "0")} / ${count} · ${label}` : ""; [...deckDots.children].forEach((dot, index) => { dot.classList.toggle("on", index === current); dot.setAttribute("aria-current", index === current ? "true" : "false"); }); }
 
-    function renderSlides() { stage.innerHTML = ""; slides.forEach((slide, index) => { const slideEl = document.createElement("section"); slideEl.className = "slide"; slideEl.dataset.index = index; slideEl.dataset.slide = slide.num; const bg = document.createElement("img"); bg.className = "slide-bg"; bg.src = slide.file; bg.alt = `第 ${slide.num} 頁`; slideEl.appendChild(bg); slide.elements.forEach((el) => slideEl.appendChild(createElementNode(el))); stage.appendChild(slideEl); }); renderPresentationOverlays(); }
+    function renderSlides() { stage.innerHTML = ""; slides.forEach((slide, index) => { const slideEl = document.createElement("section"); slideEl.className = "slide"; slideEl.dataset.index = index; slideEl.dataset.slide = slide.num; if (slide.results) { slideEl.classList.add("results-slide"); const board = document.createElement("div"); board.className = "results-board"; board.id = "resultsBoard"; slideEl.appendChild(board); } else { const bg = document.createElement("img"); bg.className = "slide-bg"; bg.src = slide.file; bg.alt = `第 ${slide.num} 頁`; slideEl.appendChild(bg); slide.elements.forEach((el) => slideEl.appendChild(createElementNode(el))); } stage.appendChild(slideEl); }); renderPresentationOverlays(); renderResultsBoard(); }
 
     function renderPresentationOverlays() { const spot = document.createElement("div"); spot.id = "spotlightMask"; const laser = document.createElement("div"); laser.id = "laser"; laser.innerHTML = '<span class="ldot"></span><span class="lring"></span>'; const ink = document.createElement("canvas"); ink.id = "inkpad"; ink.width = 1920; ink.height = 1080; stage.append(spot, ink, laser); bindInkCanvas(ink); updatePointerModeButtons(); }
 
@@ -918,7 +1012,9 @@
       if (!hasActiveSlide || old === target) { slideEls.forEach((slideEl, i) => { slideEl.classList.toggle("active", i === current); }); } else { const oldSlide = slideEls[old]; const newSlide = slideEls[current]; if (oldSlide) { oldSlide.classList.remove("active"); oldSlide.classList.add(`leaving-${direction}`); } if (newSlide) { newSlide.classList.add(`prep-${direction}`); newSlide.offsetHeight; newSlide.classList.add("active"); newSlide.classList.remove(`prep-${direction}`); } slideTransitionTimer = window.setTimeout(() => { slideEls.forEach((slideEl, i) => { slideEl.classList.toggle("active", i === current); slideEl.classList.remove("leaving-forward", "leaving-back", "prep-forward", "prep-back"); }); slideTransitionTimer = null; }, 460); }
       slideSelect.value = String(current); updateDeckChrome(); if (old !== target) clearInk(); selected = null; clearSpotlight(); refreshSelection(); closeActivities();
       set(ref(db, 'currentSlide'), current);
-      set(ref(db, 'deckInfo'), { pos: current + 1, num: slides[current] ? slides[current].num : current + 1, total: slides.length });
+      const cs = slides[current];
+      set(ref(db, 'deckInfo'), { pos: current + 1, num: cs ? (cs.results ? "📊 投票結果" : cs.num) : current + 1, total: slides.length });
+      if (cs && cs.results) animateResultsIn();
     }
 
     function bindControls() {
@@ -1051,10 +1147,11 @@
     function uploadQrImage(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { qrState.image = reader.result; saveQrPanel(); renderQrPreview(); }; reader.readAsDataURL(file); event.target.value = ""; }
     function clearQrPanel() { qrState = { url: "", image: "" }; document.getElementById("qrUrl").value = ""; saveQrPanel(); renderQrPreview(); }
     function renderQrPreview() { const preview = document.getElementById("qrPreview"); preview.innerHTML = ""; if (qrState.image) { const img = document.createElement("img"); img.src = qrState.image; img.alt = "互動 QR"; preview.appendChild(img); return; } const wrap = document.createElement("div"); wrap.className = "qr-link"; const mark = document.createElement("div"); mark.className = "qr-mark"; mark.textContent = "QR"; const text = document.createElement("strong"); text.textContent = qrState.url || "貼上互動連結或上傳 QR 圖"; wrap.append(mark, text); preview.appendChild(wrap); }
-    function exportState() { const data = JSON.stringify({ version: 2, slides, qr: qrState }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "html-presentation-state.json"; link.click(); URL.revokeObjectURL(url); }
-    function importState(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const imported = JSON.parse(reader.result); if (Array.isArray(imported.slides)) { slides = imported.slides; if (imported.qr && typeof imported.qr === "object") { qrState = { url: imported.qr.url || "", image: imported.qr.image || "" }; document.getElementById("qrUrl").value = qrState.url; renderQrPreview(); saveQrPanel(); } renderSlides(); activateSlide(current); saveLocalState(); } } catch (error) { console.warn(error); } }; reader.readAsText(file); event.target.value = ""; }
-    function saveLocalState() { try { localStorage.setItem("editableHtmlDeckState", JSON.stringify({ slides })); } catch (error) { console.warn(error); } }
-    function restoreLocalState() { try { const saved = JSON.parse(localStorage.getItem("editableHtmlDeckState") || "null"); if (saved && Array.isArray(saved.slides) && saved.slides.length === slides.length) { slides = saved.slides; mergeOcrTextIntoSlides(); renderSlides(); activateSlide(current); } } catch (error) { console.warn(error); } }
+    function exportState() { const data = JSON.stringify({ version: 3, slides: slides.filter((s) => !s.results), qr: qrState }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "html-presentation-state.json"; link.click(); URL.revokeObjectURL(url); }
+    function importState(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const imported = JSON.parse(reader.result); if (Array.isArray(imported.slides)) { slides = imported.slides; ensureResults(); if (imported.qr && typeof imported.qr === "object") { qrState = { url: imported.qr.url || "", image: imported.qr.image || "" }; document.getElementById("qrUrl").value = qrState.url; renderQrPreview(); saveQrPanel(); } renderSlides(); activateSlide(Math.min(current, slides.length - 1)); saveLocalState(); } } catch (error) { console.warn(error); } }; reader.readAsText(file); event.target.value = ""; }
+    function ensureResults() { const allowed = new Set(SLIDE_NUMBERS); slides = slides.filter((s) => s && !s.results && allowed.has(s.num)); slides.push({ num: "結果", results: true, elements: [] }); }
+    function saveLocalState() { try { localStorage.setItem("editableHtmlDeckState_v3", JSON.stringify({ slides: slides.filter((s) => !s.results) })); } catch (error) { console.warn(error); } }
+    function restoreLocalState() { try { const saved = JSON.parse(localStorage.getItem("editableHtmlDeckState_v3") || "null"); if (saved && Array.isArray(saved.slides) && saved.slides.length >= 2) { slides = saved.slides; ensureResults(); mergeOcrTextIntoSlides(); renderSlides(); activateSlide(Math.min(current, slides.length - 1)); } } catch (error) { console.warn(error); } }
     function normalizeColor(value) { if (!value || value === "transparent") return "#ffffff"; if (/^#/.test(value)) return value; const match = value.match(/\d+/g); if (!match) return "#ffffff"; return "#" + match.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join(""); }
   </script>
 </body>
