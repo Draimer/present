@@ -21,7 +21,7 @@
       --bg: #d7d6d0;
       --accent: #84e000;
       --accent-ink: #16230a;
-      --attention: #ff3030;
+     --attention: #A8D059;
       --green: #84e000;
       --opp: #5fa600;
       --digital: #46453f;
@@ -117,11 +117,22 @@
     .editing .element { outline: 2px dashed rgba(0, 143, 211, 0.45); outline-offset: -2px; cursor: move; }
     .element.selected { outline: 5px solid var(--attention); z-index: 20; }
     .element.spotlight { z-index: 28; }
-    .element.spotlight::after { content: ""; position: absolute; inset: 0; border: 8px solid var(--attention); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 5px rgba(255, 48, 48, 0.22), 0 0 34px rgba(255, 48, 48, 0.62); pointer-events: none; z-index: 100; }
-    .element.spotlight.pulse::after { animation: attentionPulse 900ms ease; }
-    .spotlight-box { position: absolute; border: 8px solid var(--attention); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 5px rgba(255, 48, 48, 0.22), 0 0 34px rgba(255, 48, 48, 0.62); pointer-events: none; z-index: 60; }
-    .spotlight-box.pulse { animation: attentionPulse 900ms ease; }
-    @keyframes attentionPulse { 0% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 0 rgba(255, 48, 48, 0.62), 0 0 0 rgba(255, 48, 48, 0.8); } 100% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 18px rgba(255, 48, 48, 0), 0 0 34px rgba(255, 48, 48, 0.62); } }
+    .element.spotlight::after { 
+  content: ""; position: absolute; inset: 0; border: 8px solid var(--attention); 
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 5px rgba(168, 208, 89, 0.22), 0 0 34px rgba(168, 208, 89, 0.62); 
+  pointer-events: none; z-index: 100; 
+}
+.element.spotlight.pulse::after { animation: attentionPulse 900ms ease; }
+.spotlight-box { 
+  position: absolute; border: 8px solid var(--attention); 
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 5px rgba(168, 208, 89, 0.22), 0 0 34px rgba(168, 208, 89, 0.62); 
+  pointer-events: none; z-index: 60; 
+}
+.spotlight-box.pulse { animation: attentionPulse 900ms ease; }
+@keyframes attentionPulse { 
+  0% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 0 rgba(168, 208, 89, 0.62), 0 0 0 rgba(168, 208, 89, 0.8); } 
+  100% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.88), 0 0 0 18px rgba(168, 208, 89, 0), 0 0 34px rgba(168, 208, 89, 0.62); } 
+}
     .shape { background: transparent; border: 0 solid transparent; }
     .editing .shape { background: color-mix(in srgb, var(--shape-color) 24%, transparent); }
     .html-only .shape { background: var(--shape-color); }
@@ -194,33 +205,61 @@
     .chart-del { height: 34px; min-width: 34px; padding: 0 10px; border-radius: var(--r-sm); }
     #chartTitle:focus { outline: none; box-shadow: 0 2px 0 var(--accent); }
     @media (max-width: 760px) { .chart-wrap { grid-template-columns: 1fr; } }
-    /* ── 最後一頁：即時投票結果 ── */
-    .results-slide { background: #141410; }
-    .results-board { position: absolute; inset: 0; background: radial-gradient(circle at 22% -10%, #23231c, #141410 72%); color: #f4f3ee; padding: 84px 120px; display: flex; flex-direction: column; font-family: var(--font-sans); }
-    .results-board .rb-head { text-align: center; margin-bottom: 38px; }
-    .results-board .rb-kicker { font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.38em; color: var(--accent); }
-    .results-board .rb-title { font-size: 86px; font-weight: 800; margin: 12px 0 6px; letter-spacing: -0.02em; line-height: 1; }
-    .results-board .rb-sub { font-size: 25px; color: rgba(244,243,238,0.55); }
-    .results-board .rb-cols { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 84px; align-content: center; }
-    .results-board .rb-col { display: flex; flex-direction: column; gap: 24px; }
-    .results-board .rb-coltitle { font-size: 38px; font-weight: 800; margin: 0 0 4px; }
-    .results-board .rb-row { display: grid; gap: 9px; }
-    .results-board .rb-label { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
-    .results-board .rb-key { display: inline-grid; place-items: center; width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(255,255,255,0.12); color: #fff; font-family: var(--font-mono); font-size: 25px; font-weight: 700; }
-    .results-board .rb-row.lead .rb-key { background: var(--accent); color: var(--accent-ink); }
-    .results-board .rb-track { position: relative; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.08); overflow: hidden; }
-    .results-board .rb-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 12px; background: linear-gradient(90deg, var(--opp), var(--accent)); transition: width 0.85s cubic-bezier(0.22,1,0.36,1); }
-    .results-board .rb-row.lead .rb-fill { background: linear-gradient(90deg, var(--accent), #b6ff4d); box-shadow: 0 0 30px rgba(132,224,0,0.5); }
-    .results-board .rb-num { display: flex; justify-content: space-between; align-items: baseline; }
-    .results-board .rb-pct { font-family: var(--font-mono); font-size: 30px; font-weight: 700; color: var(--accent); }
-    .results-board .rb-votes { font-family: var(--font-mono); font-size: 23px; color: rgba(244,243,238,0.65); }
-    .results-board .rb-coltotal { font-family: var(--font-mono); font-size: 21px; color: rgba(244,243,238,0.5); margin-top: 6px; }
-    .results-board .rb-foot { display: flex; justify-content: center; gap: 72px; margin-top: 36px; font-size: 27px; color: rgba(244,243,238,0.7); }
-    .results-board .rb-foot b { font-family: var(--font-mono); font-size: 40px; color: var(--accent); font-weight: 700; margin-right: 6px; }
+    /* ── 目錄頁 ── */
+    .toc-slide { background: #eaecdf; }
+    .toc-board { position: absolute; inset: 0; background: #eaecdf; color: #111111; padding: 90px 110px; display: flex; flex-direction: column; font-family: var(--font-sans); }
+    .toc-board .toc-head { margin-bottom: 38px; }
+    .toc-board .toc-kicker { font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.34em; color: #7c7f73; text-transform: uppercase; }
+    .toc-board .toc-title { font-size: 80px; font-weight: 800; margin: 10px 0 0; letter-spacing: -0.03em; line-height: 1; color: #111; }
+    .toc-board .toc-list { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; gap: 16px 48px; align-content: center; }
+    .toc-board .toc-item { display: flex; align-items: center; gap: 22px; text-align: left; background: #ffffff; border: 0; border-radius: 22px; padding: 22px 28px; cursor: pointer; height: auto; box-shadow: 0 10px 26px rgba(17,17,17,0.05); transition: transform 0.16s ease, background 0.2s ease; }
+    .toc-board .toc-item:hover { background: #c6ef4e; transform: translateY(-3px); }
+    .toc-board .toc-n { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: #b3b5a8; min-width: 50px; }
+    .toc-board .toc-item:hover .toc-n { color: #111; }
+    .toc-board .toc-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .toc-board .toc-name { font-size: 32px; font-weight: 800; line-height: 1.08; color: #111; }
+    .toc-board .toc-sub { font-size: 18px; color: #7c7f73; margin-top: 3px; }
+    .toc-board .toc-item:hover .toc-sub { color: #41511c; }
+    .toc-board .toc-arrow { font-size: 28px; color: #b3b5a8; opacity: 0; transition: opacity 0.18s ease; }
+    .toc-board .toc-item:hover .toc-arrow { opacity: 1; color: #111; }
+    /* ── 最後一頁：即時投票結果（儀表板風格）── */
+    .results-slide { background: #eaecdf; }
+    .results-board { position: absolute; inset: 0; background: #eaecdf; color: #111111; padding: 60px 84px; display: flex; flex-direction: column; font-family: var(--font-sans); }
+    .results-board .rb-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 26px; }
+    .results-board .rb-kicker { font-family: var(--font-mono); font-size: 17px; letter-spacing: 0.34em; color: #7c7f73; text-transform: uppercase; }
+    .results-board .rb-title { font-size: 70px; font-weight: 800; margin: 4px 0 0; letter-spacing: -0.03em; line-height: 0.98; color: #111; }
+    .results-board .rb-sub { font-size: 21px; color: #7c7f73; }
+    .results-board .rb-cols { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+    .results-board .rb-col { background: #ffffff; border-radius: 30px; padding: 32px 34px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 14px 36px rgba(17,17,17,0.06); }
+    .results-board .rb-coltitle { font-size: 29px; font-weight: 800; margin: 0 0 8px; color: #111; }
+    .results-board .rb-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 12px 16px; border-radius: 20px; background: #f6f7f7; transition: background 0.35s ease; }
+    .results-board .rb-row.lead { background: #c6ef4e; }
+    .results-board .rb-label { display: flex; align-items: center; gap: 14px; font-size: 23px; font-weight: 700; min-width: 0; color: #111; }
+    .results-board .rb-key { display: inline-grid; place-items: center; width: 44px; height: 44px; min-width: 44px; border-radius: 13px; background: #111; color: #c6ef4e; font-family: var(--font-mono); font-size: 21px; font-weight: 700; }
+    .results-board .rb-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .results-board .rb-track { position: relative; height: 18px; border-radius: 999px; background: #e4e6dd; overflow: hidden; min-width: 80px; }
+    .results-board .rb-row.lead .rb-track { background: rgba(17,17,17,0.16); }
+    .results-board .rb-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: #c6ef4e; transition: width 0.85s cubic-bezier(0.22,1,0.36,1); }
+    .results-board .rb-row.lead .rb-fill { background: #111; }
+    .results-board .rb-num { display: flex; align-items: baseline; gap: 8px; justify-content: flex-end; min-width: 124px; }
+    .results-board .rb-pct { font-size: 30px; font-weight: 800; color: #111; letter-spacing: -0.02em; }
+    .results-board .rb-votes { font-family: var(--font-mono); font-size: 16px; color: #7c7f73; }
+    .results-board .rb-row.lead .rb-votes { color: #41511c; }
+    .results-board .rb-coltotal { font-family: var(--font-mono); font-size: 16px; color: #9a9c90; margin-top: auto; padding-top: 8px; }
+    .results-board .rb-foot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+    .results-board .rb-stat { background: #ffffff; border-radius: 22px; padding: 18px 24px; font-size: 18px; color: #7c7f73; font-weight: 600; box-shadow: 0 10px 28px rgba(17,17,17,0.05); display: flex; align-items: baseline; gap: 10px; }
+    .results-board .rb-stat b { font-family: var(--font-sans); font-size: 36px; color: #111; font-weight: 800; }
     .presenting .toolbar, .presenting .side-panel { display: none; }
     .presenting .workspace { grid-template-columns: 1fr; background: #111; }
     .presenting .stage-shell { padding: 0; overflow: hidden; background: #111; }
-    .presenting .stage { box-shadow: none; }
+    .presenting .stage { 
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--stage-scale));
+  transform-origin: center center;
+  box-shadow: none; 
+}
     .presenting .element { outline: 0; }
     .editing .presenter-tools, .editing #spotlightMask, .editing #laser { display: none; }
     @media (prefers-reduced-motion: reduce) { .slide, .element.spotlight.pulse::after, .spotlight-box.pulse { transition: none; animation: none; } }
@@ -927,6 +966,30 @@
       requestAnimationFrame(() => requestAnimationFrame(updateResults));
     }
 
+    /* ===== 目錄頁（第二頁）===== */
+    const TOC = [
+      { n: "01", title: "研究動機", sub: "網購包裝的困擾", num: 2 },
+      { n: "02", title: "使用者流程分析", sub: "從下單到回收", num: 4 },
+      { n: "03", title: "有趣的切入點", num: 12 },
+      { n: "04", title: "問卷設計", num: 14 },
+      { n: "05", title: "問卷分析結果", num: 15 },
+      { n: "06", title: "我們的觀點 - 三個提案", num: 19 },
+      { n: "07", title: "投票結果 / Q&A", results: true }
+    ];
+    function renderTocBoard() {
+      const board = document.getElementById("tocBoard");
+      if (!board) return;
+      board.innerHTML = `
+        <div class="toc-head">
+          <span class="toc-kicker">CONTENTS · 目錄</span>
+          <h1 class="toc-title">本次簡報大綱</h1>
+        </div>
+        <div class="toc-list">${TOC.map((t, i) => `<button class="toc-item" data-idx="${i}"><span class="toc-n">${t.n}</span><span class="toc-main"><span class="toc-name">${t.title}</span>${t.sub ? `<span class="toc-sub">${t.sub}</span>` : ""}</span><span class="toc-arrow">→</span></button>`).join("")}</div>`;
+      board.querySelectorAll(".toc-item").forEach((btn) => {
+        btn.addEventListener("click", () => { const t = TOC[Number(btn.dataset.idx)]; const idx = t.results ? slides.findIndex((s) => s.results) : slides.findIndex((s) => s.num === t.num); if (idx >= 0) activateSlide(idx); });
+      });
+    }
+
     // 額外快捷鍵：V 提案票選、G 問卷圓餅圖
     window.addEventListener("keydown", (e) => {
       if (e.target && e.target.matches && e.target.matches("input, textarea, [contenteditable='true']")) return;
@@ -962,6 +1025,7 @@
         elements.push(...ocrElementsForSlide(num));
         return { num, file: `assets/slides/${num}.jpg`, elements };
       });
+      built.splice(1, 0, { num: "目錄", toc: true, elements: [] });
       built.push({ num: "結果", results: true, elements: [] });
       return built;
     }
@@ -972,13 +1036,13 @@
 
     function mergeOcrTextIntoSlides() { slides.forEach((slide) => { slide.elements = slide.elements.filter((el) => el.source !== "ocr"); slide.elements.push(...ocrElementsForSlide(slide.num)); }); }
 
-    function renderSlideOptions() { slideSelect.innerHTML = ""; slides.forEach((slide, index) => { const option = document.createElement("option"); option.value = index; option.textContent = slide.results ? "📊 投票結果" : `第 ${slide.num} 頁`; slideSelect.appendChild(option); }); }
+    function renderSlideOptions() { slideSelect.innerHTML = ""; slides.forEach((slide, index) => { const option = document.createElement("option"); option.value = index; option.textContent = slide.toc ? "📑 目錄" : slide.results ? "📊 投票結果" : `第 ${slide.num} 頁`; slideSelect.appendChild(option); }); }
 
-    function renderDeckDots() { deckDots.innerHTML = ""; slides.forEach((slide, index) => { const dot = document.createElement("button"); dot.className = "deck-dot"; dot.type = "button"; dot.title = slide.results ? "投票結果" : `第 ${slide.num} 頁`; dot.setAttribute("aria-label", slide.results ? "切換到投票結果" : `切換到第 ${slide.num} 頁`); dot.addEventListener("click", () => activateSlide(index)); deckDots.appendChild(dot); }); updateDeckChrome(); }
+    function renderDeckDots() { deckDots.innerHTML = ""; slides.forEach((slide, index) => { const dot = document.createElement("button"); dot.className = "deck-dot"; dot.type = "button"; dot.title = slide.toc ? "目錄" : slide.results ? "投票結果" : `第 ${slide.num} 頁`; dot.setAttribute("aria-label", slide.toc ? "切換到目錄" : slide.results ? "切換到投票結果" : `切換到第 ${slide.num} 頁`); dot.addEventListener("click", () => activateSlide(index)); deckDots.appendChild(dot); }); updateDeckChrome(); }
 
-    function updateDeckChrome() { const count = Math.max(1, slides.length); const slide = slides[current]; deckProgress.style.width = `${((current + 1) / count) * 100}%`; const label = slide ? (slide.results ? "投票結果" : `第 ${slide.num} 頁`) : ""; deckCounter.textContent = slide ? `${String(current + 1).padStart(2, "0")} / ${count} · ${label}` : ""; [...deckDots.children].forEach((dot, index) => { dot.classList.toggle("on", index === current); dot.setAttribute("aria-current", index === current ? "true" : "false"); }); }
+    function updateDeckChrome() { const count = Math.max(1, slides.length); const slide = slides[current]; deckProgress.style.width = `${((current + 1) / count) * 100}%`; const label = slide ? (slide.toc ? "目錄" : slide.results ? "投票結果" : `第 ${slide.num} 頁`) : ""; deckCounter.textContent = slide ? `${String(current + 1).padStart(2, "0")} / ${count} · ${label}` : ""; [...deckDots.children].forEach((dot, index) => { dot.classList.toggle("on", index === current); dot.setAttribute("aria-current", index === current ? "true" : "false"); }); }
 
-    function renderSlides() { stage.innerHTML = ""; slides.forEach((slide, index) => { const slideEl = document.createElement("section"); slideEl.className = "slide"; slideEl.dataset.index = index; slideEl.dataset.slide = slide.num; if (slide.results) { slideEl.classList.add("results-slide"); const board = document.createElement("div"); board.className = "results-board"; board.id = "resultsBoard"; slideEl.appendChild(board); } else { const bg = document.createElement("img"); bg.className = "slide-bg"; bg.src = slide.file; bg.alt = `第 ${slide.num} 頁`; slideEl.appendChild(bg); slide.elements.forEach((el) => slideEl.appendChild(createElementNode(el))); } stage.appendChild(slideEl); }); renderPresentationOverlays(); renderResultsBoard(); }
+    function renderSlides() { stage.innerHTML = ""; slides.forEach((slide, index) => { const slideEl = document.createElement("section"); slideEl.className = "slide"; slideEl.dataset.index = index; slideEl.dataset.slide = slide.num; if (slide.results) { slideEl.classList.add("results-slide"); const board = document.createElement("div"); board.className = "results-board"; board.id = "resultsBoard"; slideEl.appendChild(board); } else if (slide.toc) { slideEl.classList.add("toc-slide"); const board = document.createElement("div"); board.className = "toc-board"; board.id = "tocBoard"; slideEl.appendChild(board); } else { const bg = document.createElement("img"); bg.className = "slide-bg"; bg.src = slide.file; bg.alt = `第 ${slide.num} 頁`; slideEl.appendChild(bg); slide.elements.forEach((el) => slideEl.appendChild(createElementNode(el))); } stage.appendChild(slideEl); }); renderPresentationOverlays(); renderResultsBoard(); renderTocBoard(); }
 
     function renderPresentationOverlays() { const spot = document.createElement("div"); spot.id = "spotlightMask"; const laser = document.createElement("div"); laser.id = "laser"; laser.innerHTML = '<span class="ldot"></span><span class="lring"></span>'; const ink = document.createElement("canvas"); ink.id = "inkpad"; ink.width = 1920; ink.height = 1080; stage.append(spot, ink, laser); bindInkCanvas(ink); updatePointerModeButtons(); }
 
@@ -1013,7 +1077,7 @@
       slideSelect.value = String(current); updateDeckChrome(); if (old !== target) clearInk(); selected = null; clearSpotlight(); refreshSelection(); closeActivities();
       set(ref(db, 'currentSlide'), current);
       const cs = slides[current];
-      set(ref(db, 'deckInfo'), { pos: current + 1, num: cs ? (cs.results ? "📊 投票結果" : cs.num) : current + 1, total: slides.length });
+      set(ref(db, 'deckInfo'), { pos: current + 1, num: cs ? (cs.toc ? "📑 目錄" : cs.results ? "📊 投票結果" : cs.num) : current + 1, total: slides.length });
       if (cs && cs.results) animateResultsIn();
     }
 
@@ -1147,10 +1211,10 @@
     function uploadQrImage(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { qrState.image = reader.result; saveQrPanel(); renderQrPreview(); }; reader.readAsDataURL(file); event.target.value = ""; }
     function clearQrPanel() { qrState = { url: "", image: "" }; document.getElementById("qrUrl").value = ""; saveQrPanel(); renderQrPreview(); }
     function renderQrPreview() { const preview = document.getElementById("qrPreview"); preview.innerHTML = ""; if (qrState.image) { const img = document.createElement("img"); img.src = qrState.image; img.alt = "互動 QR"; preview.appendChild(img); return; } const wrap = document.createElement("div"); wrap.className = "qr-link"; const mark = document.createElement("div"); mark.className = "qr-mark"; mark.textContent = "QR"; const text = document.createElement("strong"); text.textContent = qrState.url || "貼上互動連結或上傳 QR 圖"; wrap.append(mark, text); preview.appendChild(wrap); }
-    function exportState() { const data = JSON.stringify({ version: 3, slides: slides.filter((s) => !s.results), qr: qrState }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "html-presentation-state.json"; link.click(); URL.revokeObjectURL(url); }
+    function exportState() { const data = JSON.stringify({ version: 3, slides: slides.filter((s) => !s.results && !s.toc), qr: qrState }, null, 2); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "html-presentation-state.json"; link.click(); URL.revokeObjectURL(url); }
     function importState(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const imported = JSON.parse(reader.result); if (Array.isArray(imported.slides)) { slides = imported.slides; ensureResults(); if (imported.qr && typeof imported.qr === "object") { qrState = { url: imported.qr.url || "", image: imported.qr.image || "" }; document.getElementById("qrUrl").value = qrState.url; renderQrPreview(); saveQrPanel(); } renderSlides(); activateSlide(Math.min(current, slides.length - 1)); saveLocalState(); } } catch (error) { console.warn(error); } }; reader.readAsText(file); event.target.value = ""; }
-    function ensureResults() { const allowed = new Set(SLIDE_NUMBERS); slides = slides.filter((s) => s && !s.results && allowed.has(s.num)); slides.push({ num: "結果", results: true, elements: [] }); }
-    function saveLocalState() { try { localStorage.setItem("editableHtmlDeckState_v3", JSON.stringify({ slides: slides.filter((s) => !s.results) })); } catch (error) { console.warn(error); } }
+    function ensureResults() { const allowed = new Set(SLIDE_NUMBERS); slides = slides.filter((s) => s && !s.results && !s.toc && allowed.has(s.num)); slides.splice(Math.min(1, slides.length), 0, { num: "目錄", toc: true, elements: [] }); slides.push({ num: "結果", results: true, elements: [] }); }
+    function saveLocalState() { try { localStorage.setItem("editableHtmlDeckState_v3", JSON.stringify({ slides: slides.filter((s) => !s.results && !s.toc) })); } catch (error) { console.warn(error); } }
     function restoreLocalState() { try { const saved = JSON.parse(localStorage.getItem("editableHtmlDeckState_v3") || "null"); if (saved && Array.isArray(saved.slides) && saved.slides.length >= 2) { slides = saved.slides; ensureResults(); mergeOcrTextIntoSlides(); renderSlides(); activateSlide(Math.min(current, slides.length - 1)); } } catch (error) { console.warn(error); } }
     function normalizeColor(value) { if (!value || value === "transparent") return "#ffffff"; if (/^#/.test(value)) return value; const match = value.match(/\d+/g); if (!match) return "#ffffff"; return "#" + match.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join(""); }
   </script>
